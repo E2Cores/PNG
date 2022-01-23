@@ -1,15 +1,16 @@
 {
-    "title"		:	"[E2] Base Core",
+    "title"		:	"[E2] PNG Core",
     "type"		:	"tool",
     "tags"		:	[ "build", "fun"],
-    "description":	"A base core that does stuff",
-    "author" : "You",
+    "description":	"A core to build PNG images and write them to files",
+    "author" : "Vurv",
     "ignore"	:
     [
         ".github",
         ".git",
         "*.md",
         "*.jpg",
+        "*.png",
         "*.bat",
         "temp.gma",
         ".gitattributes",
