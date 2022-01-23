@@ -1,0 +1,18 @@
+{
+    "title"		:	"[E2] Base Core",
+    "type"		:	"tool",
+    "tags"		:	[ "build", "fun"],
+    "description":	"A base core that does stuff",
+    "author" : "You",
+    "ignore"	:
+    [
+        ".github",
+        ".git",
+        "*.md",
+        "*.jpg",
+        "*.bat",
+        "temp.gma",
+        ".gitattributes",
+        ".glualint.json"
+    ]
+}

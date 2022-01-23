@@ -1,0 +1,30 @@
+name: Linter
+
+on:
+  push:
+    paths:
+    - 'lua/**'
+    - '!lua/entities/gmod_wire_expression2/**' # Ignore E2 path since it uses preprocessor stuff.
+  pull_request:
+    paths:
+    - 'lua/**'
+    - '!lua/entities/gmod_wire_expression2/**'
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Download GluaFixer 1.18.2
+      run: |
+        curl -o glualint.zip -L https://github.com/FPtje/GLuaFixer/releases/download/1.18.2/glualint-1.18.2-linux.zip
+        unzip glualint.zip
+
+    - name: Remove E2 Extension Folder
+      run: rm -r lua/entities/gmod_wire_expression2/
+
+    - name: Lint Code
+      run: ./glualint lua
