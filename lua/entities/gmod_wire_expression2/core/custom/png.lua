@@ -1,6 +1,6 @@
 ﻿E2Lib.RegisterExtension("PNG", true, "PNG E2 Core")
 
-local PNG = include("png.lua")
+local PNG = include("libpng.lua")
 
 E2Lib.registerConstant( "PNG_RGB", PNG.RGB )
 E2Lib.registerConstant( "PNG_RGBA", PNG.RGBA )
@@ -23,81 +23,100 @@ local function assertE2(condition, msg, trace)
 end
 
 __e2setcost(1)
-e2function webaudio operator=(png lhs, png rhs) -- Wa = webAudio("...") (Rip Coroutine Core comments)
-	local scope = self.Scopes[ args[4] ]
-	scope[lhs] = rhs
-	scope.vclk[lhs] = true
-	return rhs
-end
+registerOperator("ass", "xpn", "xpn", function(self, args)
+	local op1, op2, scope = args[2], args[3], args[4]
+	local rv2 = op2[1](self, op2)
+	self.Scopes[scope][op1] = rv2
+	self.Scopes[scope].vclk[op1] = true
+	return rv2
+end)
 
-e2function number operator==(png lhs, png rhs) -- if(webAudio("...")==Wa)
-	return lhs == rhs
-end
+registerOperator("eq", "xpngxpng", "n", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local v1, v2 = op1[1](self, op1), op2[1](self, op2)
+	if v1 == v2 then return 1 else return 0 end
+end)
 
-e2function number operator!=(png lhs, png rhs) -- if(Wa!=Wa)
-	return lhs ~= rhs
-end
+registerOperator("neq", "xpngxpng", "n", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local v1, v2 = op1[1](self, op1), op2[1](self, op2)
+	if v1 ~= v2 then return 1 else return 0 end
+end)
 
-e2function number operator_is(png img)
-	return IsValid(img) and 1 or 0
-end
+registerOperator("is", "xpng", "n", function(self, args)
+	local op1 = args[2]
+	local v1 = op1[1](self, op1)
+	if IsValid(v1) then return 1 else return 0 end
+end)
 
 __e2setcost(40)
-e2function png png(number width, number height, number mode)
+registerFunction("png", "nnn", "xpn", function(self, args)
+	local op1, op2, op3 = args[2], args[3], args[4]
+	local width, height, mode = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3)
+
 	assertE2(mode == PNG.RGB or mode == PNG.RGBA, "Invalid color mode. Use _PNG_RGB or _PNG_RGBA", self.trace)
 	assertE2(width > 0 and height > 0, "Invalid size. Width and height must be greater than 0.", self.trace)
 	assertE2(width < 2048 and height < 2048, "Invalid size. Width and height must be less than 2048.", self.trace)
 
 	return PNG.new(width, height, mode)
-end
+end)
 
 __e2setcost(3)
-e2function void png:writeVector(vector v)
-	---@type PNG
-	local this = this
+registerFunction("writeVector", "xpn:v", "", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local this, vec = op1[1](self, op1), op2[1](self, op2)
+
 	assertE2(not this.done, "PNG is already done!", self.trace)
+	this:write(vec)
+end)
 
-	this:write(v)
-end
+registerFunction("writeVector4", "xpn:v4", "", function(self, args)
+	local op1, op2 = args[2], args[3]
+	local this, vec = op1[1](self, op1), op2[1](self, op2)
 
-e2function void png:writeVector4(vector v)
-	---@type PNG
-	local this = this
 	assertE2(not this.done, "PNG is already done!", self.trace)
+	this:write(vec)
+end)
 
-	this:write(v)
-end
+registerFunction("write", "xpn:nnn", "", function(self, args)
+	local op1, op2, op3, op4 = args[2], args[3], args[4], args[5]
+	local this, r, g, b = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4)
 
-e2function void png:write(number r, number g, number b)
-	---@type PNG
-	local this = this
+	assertE2(not this.done, "PNG is already done!", self.trace)
 
 	if this.type == PNG.RGB then
 		this:write { r, g, b }
 	else
 		this:write { r, g, b, 255 }
 	end
-end
+end)
 
 __e2setcost(5)
-e2function void png:write(number r, number g, number b, number a)
-	---@type PNG
-	local this = this
+registerFunction("write", "xpn:nnnn", "", function(self, args)
+	local op1, op2, op3, op4, op5 = args[2], args[3], args[4], args[5], args[6]
+	local this, r, g, b, a = op1[1](self, op1), op2[1](self, op2), op3[1](self, op3), op4[1](self, op4), op5[1](self, op5)
+
 	assertE2(not this.done, "PNG is already done!", self.trace)
 
 	if this.type == PNG.RGBA then
-		this:write { r, g, b }
-	else
 		this:write { r, g, b, a }
+	else
+		this:write { r, g, b }
 	end
-end
+end)
 
 __e2setcost(10)
-e2function string png:output()
+registerFunction("output", "xpn:", "s", function(self, args)
+	local op1 = args[2]
+	local this = op1[1](self, op1)
+
 	return table.concat(this.output)
-end
+end)
 
 __e2setcost(1)
-e2function number png:done()
-	return this.done and 1 or 0
-end
+registerFunction("done", "xpn:", "n", function(self, args)
+	local op1 = args[2]
+	local this = op1[1](self, op1)
+
+	if this.done then return 1 else return 0 end
+end)
