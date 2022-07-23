@@ -1,6 +1,9 @@
 ﻿E2Lib.RegisterExtension("PNG", true, "PNG E2 Core")
 
+---@type PNG
 local PNG = include("libpng.lua")
+
+local MaxRes = CreateConVar("e2_pngcore_max_res", tostring(2048 ^ 2), "Maximum combined resolution", nil, "Maximum resolution allowed to create an E2 PNG with (default 2048^2).")
 
 E2Lib.registerConstant( "PNG_RGB", PNG.RGB )
 E2Lib.registerConstant( "PNG_RGBA", PNG.RGBA )
@@ -9,13 +12,11 @@ registerType("png", "xpn", nil, nil, nil,
 	function(ret)
 		if not istable(ret) then return end
 		if not PNG.instanceof(ret) then
-			error("Return value is neither nil nor a PNG, but a %s!", type(ret))
+			error("Return value is neither nil nor a PNG, but a " .. type(ret) .. "!")
 		end
 	end,
 	PNG.instanceof
 )
-
-local floor = math.floor
 
 local exception = E2Lib.raiseException
 local function assertE2(condition, msg, trace)
@@ -31,19 +32,19 @@ registerOperator("ass", "xpn", "xpn", function(self, args)
 	return rv2
 end)
 
-registerOperator("eq", "xpngxpng", "n", function(self, args)
+registerOperator("eq", "xpnxpn", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local v1, v2 = op1[1](self, op1), op2[1](self, op2)
 	if v1 == v2 then return 1 else return 0 end
 end)
 
-registerOperator("neq", "xpngxpng", "n", function(self, args)
+registerOperator("neq", "xpnxpn", "n", function(self, args)
 	local op1, op2 = args[2], args[3]
 	local v1, v2 = op1[1](self, op1), op2[1](self, op2)
 	if v1 ~= v2 then return 1 else return 0 end
 end)
 
-registerOperator("is", "xpng", "n", function(self, args)
+registerOperator("is", "xpn", "n", function(self, args)
 	local op1 = args[2]
 	local v1 = op1[1](self, op1)
 	if IsValid(v1) then return 1 else return 0 end
@@ -56,7 +57,9 @@ registerFunction("png", "nnn", "xpn", function(self, args)
 
 	assertE2(mode == PNG.RGB or mode == PNG.RGBA, "Invalid color mode. Use _PNG_RGB or _PNG_RGBA", self.trace)
 	assertE2(width > 0 and height > 0, "Invalid size. Width and height must be greater than 0.", self.trace)
-	assertE2(width < 2048 and height < 2048, "Invalid size. Width and height must be less than 2048.", self.trace)
+
+	local max_res = MaxRes:GetInt()
+	assertE2((width * height) <= max_res, "Invalid size" .. width * height .. ". Maximum combined is " .. max_res, self.trace)
 
 	return PNG.new(width, height, mode)
 end)
@@ -108,7 +111,12 @@ end)
 __e2setcost(10)
 registerFunction("output", "xpn:", "s", function(self, args)
 	local op1 = args[2]
+
+	---@type PNG
 	local this = op1[1](self, op1)
+
+	-- ~8000 ops for a 2048x2048 render.
+	self.prf = self.prf + (this.width * this.height) / 500
 
 	return table.concat(this.output)
 end)
