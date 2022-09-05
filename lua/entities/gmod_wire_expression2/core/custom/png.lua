@@ -3,7 +3,7 @@
 ---@type PNG
 local PNG = include("libpng.lua")
 
-local MaxRes = CreateConVar("e2_pngcore_max_res", tostring(2048 ^ 2), "Maximum combined resolution", nil, "Maximum resolution allowed to create an E2 PNG with (default 2048^2).")
+local MaxRes = CreateConVar("e2_pngcore_max_res", tostring(2048 ^ 2), nil, "Maximum resolution allowed to create an E2 PNG with (default 2048^2).")
 
 E2Lib.registerConstant( "PNG_RGB", PNG.RGB )
 E2Lib.registerConstant( "PNG_RGBA", PNG.RGBA )
